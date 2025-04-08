@@ -1,0 +1,6 @@
+export enum EventType {
+  LIKE_POST = "LIKE_POST",
+  LIKE_COMMENT = "LIKE_COMMENT",
+  SHARE_POST = "SHARE_POST",
+  COMMENT_POST = "COMMENT_POST",
+}

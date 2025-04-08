@@ -1,0 +1,39 @@
+type Query {
+  getNotificationsByUserId(
+    userId: String!
+    offset: Int
+    limit: Int
+  ): PageableNotificationResponse
+  getUnreadNotifications(userId: String!): UnreadNotificationResponse
+}
+
+type Mutation {
+  readNotifications(userId: String!): Boolean
+}
+
+type PageableNotificationResponse {
+  items: [NotificationResponse]
+  count: Int
+  page: Int
+  totalPages: Int
+}
+
+type NotificationResponse {
+  id: ID!
+  title: String
+  notification: String
+  type: String
+  createdAt: String
+  userId: String
+  read: Boolean
+  meta: AWSJSON
+}
+
+type UnreadNotificationResponse {
+  hasUnread: Boolean
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
