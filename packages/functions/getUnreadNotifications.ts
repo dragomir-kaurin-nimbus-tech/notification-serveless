@@ -13,8 +13,6 @@ export async function handler(event: any) {
       };
     }
 
-    console.log(userId, 2222222);
-
     const params = {
       TableName: `${process.env.DEPLOYMENT_ENV}-UnreadNotificationsTable`,
       KeyConditionExpression: "userId = :userId",
@@ -26,7 +24,6 @@ export async function handler(event: any) {
 
     const result = await ddbClient.send(new QueryCommand(params));
 
-    console.log(result, 3333333);
     const count = result.Count ?? 0;
 
     return { statusCode: 200, hasUnread: count > 0 };
