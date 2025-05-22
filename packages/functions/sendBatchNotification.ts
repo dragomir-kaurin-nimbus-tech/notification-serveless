@@ -34,7 +34,6 @@ const likePostNotificationMapper = (
   user: any,
   imageUrl: string
 ) => {
-  console.log("66666666666", imageUrl);
   return {
     title: "Like your post",
     text: `${user} like your post`,
@@ -47,7 +46,6 @@ const likeCommentNotificationMapper = (
   user: any,
   imageUrl: string
 ) => {
-  console.log("likeCommentNotificationMapper", type, user);
   return {
     title: "Like your comment",
     text: `${user} like your comment`,
@@ -60,7 +58,6 @@ const sharePostNotificationMapper = (
   user: any,
   imageUrl: string
 ) => {
-  console.log("sharePostNotificationMapper", type, user);
   return {
     title: "Share your post",
     text: `${user} share your post`,
@@ -73,7 +70,6 @@ const commentPostNotificationMapper = (
   user: any,
   imageUrl: string
 ) => {
-  console.log("commentPostNotificationMapper", type, user);
   return {
     title: "Comment post",
     text: `${user} comment your post`,
@@ -93,15 +89,12 @@ export async function handler(event: any) {
   const { notification, title, createdAt, type, userNotificationsSetup } =
     detail;
 
-  console.log(type, 1111111);
   await Promise.all(
     userNotificationsSetup?.map(async (userSetup: UserNotificationType) => {
       let notificationTitle = title ?? "";
       let notificationText = notification ?? "";
 
-      console.log(userSetup, 222222);
       if ([EventType.LIKE_POST as string].includes(type)) {
-        // console.log(9898989898989898989898989);
         const translations = likePostNotificationMapper(
           type,
           userSetup?.meta?.firstName,
@@ -112,8 +105,6 @@ export async function handler(event: any) {
       }
 
       if ([EventType.LIKE_COMMENT as string].includes(type)) {
-        console.log(userSetup.meta, "META");
-        // console.log(9898989898989898989898989);
         const translations = likeCommentNotificationMapper(
           type,
           userSetup?.meta?.firstName,
@@ -124,7 +115,6 @@ export async function handler(event: any) {
       }
 
       if ([EventType.SHARE_POST as string].includes(type)) {
-        // console.log(9898989898989898989898989);
         const translations = sharePostNotificationMapper(
           type,
           userSetup?.meta?.firstName,
@@ -135,8 +125,6 @@ export async function handler(event: any) {
       }
 
       if ([EventType.COMMENT_POST as string].includes(type)) {
-        console.log(userSetup.meta, "META");
-        // console.log(9898989898989898989898989);
         const translations = commentPostNotificationMapper(
           type,
           userSetup?.meta?.firstName,
@@ -148,7 +136,7 @@ export async function handler(event: any) {
 
       await docClient.send(
         new PutCommand({
-          TableName: `${process.env.DEPLOYMENT_ENV}-NotificationsTable`,
+          TableName: `${process.env.DEPLOYMENT_ENV}-younger-serverless-NotificationsTable`,
           Item: {
             pk: `USER#${userSetup.userId}`,
             sk: `NOTIFICATION#${new Date().toISOString()}`,
@@ -200,9 +188,7 @@ export async function handler(event: any) {
               winningBid: userSetup.meta?.["winningBid"],
             },
           });
-        } catch (error) {
-          console.log((error as Error).message);
-        }
+        } catch (error) {}
       }
 
       if (userSetup.sendNotification && userSetup.deviceTokens?.length) {
@@ -216,9 +202,7 @@ export async function handler(event: any) {
             title: notificationTitle,
             body: notificationText,
           });
-        } catch (error) {
-          console.log((error as Error).message);
-        }
+        } catch (error) {}
       }
     })
   );
