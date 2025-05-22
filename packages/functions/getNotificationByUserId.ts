@@ -62,8 +62,6 @@ export async function handler(args: HandlerArgs) {
 
     result = await docClient.send(new QueryCommand(paginatedParams));
 
-    console.log(result.Items, "090909090909090909090");
-
     const itemsWithId = result.Items?.map((item) => ({
       id: item.sk,
       title: item.title,

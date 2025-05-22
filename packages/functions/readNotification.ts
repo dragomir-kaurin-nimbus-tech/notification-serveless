@@ -10,7 +10,6 @@ export async function handler(event: any) {
     return false;
   }
 
-  console.log(event?.arguments?.userId, 111111111);
   const tableName = `${process.env.DEPLOYMENT_ENV}-UnreadNotificationsTable`;
 
   try {
