@@ -29,6 +29,18 @@ type BatchNotificationType = {
   title: string;
 };
 
+const sendMessageNotificationMapper = (
+  type: string,
+  user: any,
+  imageUrl: string
+) => {
+  return {
+    title: "Send message",
+    text: `${user} send you message`,
+    userImageUrl: imageUrl,
+  };
+};
+
 const likePostNotificationMapper = (
   type: string,
   user: any,
@@ -134,62 +146,75 @@ export async function handler(event: any) {
         notificationText = translations.text;
       }
 
-      await docClient.send(
-        new PutCommand({
-          TableName: `${process.env.DEPLOYMENT_ENV}-younger-serverless-NotificationsTable`,
-          Item: {
-            pk: `USER#${userSetup.userId}`,
-            sk: `NOTIFICATION#${new Date().toISOString()}`,
-            userId: userSetup.userId,
-            notification: notificationText,
-            title: notificationTitle,
-            createdAt: createdAt,
-            updatedAt: new Date().toISOString(),
-            type: type,
-            meta: {
-              ...userSetup?.meta,
-              userImageUrl: userSetup?.meta?.userImageUrl || "",
-            },
-          },
-        })
-      );
-
-      await docClient.send(
-        new PutCommand({
-          TableName: `${process.env.DEPLOYMENT_ENV}-UnreadNotificationsTable`,
-          Item: {
-            userId: userSetup.userId,
-          },
-        })
-      );
-
-      if (
-        userSetup.sendEmail &&
-        userSetup.email &&
-        [EventType.LIKE_POST as string].includes(type)
-      ) {
-        const emailContent = emailMapper(type);
-
-        try {
-          await sendgrid.send({
-            to: userSetup.email,
-            from: process.env.SENDER_EMAIL || "",
-            subject: emailContent.subject,
-            templateId: emailContent.templateId,
-            dynamicTemplateData: {
-              username: userSetup.meta?.["username"],
-              bid: userSetup.meta?.["bid"],
-              round: userSetup.meta?.["round"],
-              reward: userSetup.meta?.["reward"],
-              referral: userSetup.meta?.["referral"],
-              currency: userSetup.meta?.["currency"],
-              code: userSetup.meta?.["code"],
-              winner: userSetup.meta?.["winner"],
-              winningBid: userSetup.meta?.["winningBid"],
-            },
-          });
-        } catch (error) {}
+      if ([EventType.SEND_MESSAGE as string].includes(type)) {
+        const translations = sendMessageNotificationMapper(
+          type,
+          userSetup?.meta?.firstName,
+          userSetup?.meta?.userImageUrl || ""
+        );
+        notificationTitle = translations.title;
+        notificationText = translations.text;
       }
+
+      if (![EventType.SEND_MESSAGE as string].includes(type)) {
+        await docClient.send(
+          new PutCommand({
+            TableName: `${process.env.DEPLOYMENT_ENV}-younger-serverless-NotificationsTable`,
+            Item: {
+              pk: `USER#${userSetup.userId}`,
+              sk: `NOTIFICATION#${new Date().toISOString()}`,
+              userId: userSetup.userId,
+              notification: notificationText,
+              title: notificationTitle,
+              createdAt: createdAt,
+              updatedAt: new Date().toISOString(),
+              type: type,
+              meta: {
+                ...userSetup?.meta,
+                userImageUrl: userSetup?.meta?.userImageUrl || "",
+              },
+            },
+          })
+        );
+
+        await docClient.send(
+          new PutCommand({
+            TableName: `${process.env.DEPLOYMENT_ENV}-UnreadNotificationsTable`,
+            Item: {
+              userId: userSetup.userId,
+            },
+          })
+        );
+      }
+
+      //TODO: uncomment this when insert sendgrid
+      // if (
+      //   userSetup.sendEmail &&
+      //   userSetup.email &&
+      //   [EventType.LIKE_POST as string].includes(type)
+      // ) {
+      //   const emailContent = emailMapper(type);
+
+      //   try {
+      //     await sendgrid.send({
+      //       to: userSetup.email,
+      //       from: process.env.SENDER_EMAIL || "",
+      //       subject: emailContent.subject,
+      //       templateId: emailContent.templateId,
+      //       dynamicTemplateData: {
+      //         username: userSetup.meta?.["username"],
+      //         bid: userSetup.meta?.["bid"],
+      //         round: userSetup.meta?.["round"],
+      //         reward: userSetup.meta?.["reward"],
+      //         referral: userSetup.meta?.["referral"],
+      //         currency: userSetup.meta?.["currency"],
+      //         code: userSetup.meta?.["code"],
+      //         winner: userSetup.meta?.["winner"],
+      //         winningBid: userSetup.meta?.["winningBid"],
+      //       },
+      //     });
+      //   } catch (error) {}
+      // }
 
       if (userSetup.sendNotification && userSetup.deviceTokens?.length) {
         try {
