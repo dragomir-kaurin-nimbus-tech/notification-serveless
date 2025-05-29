@@ -173,6 +173,7 @@ export async function handler(event: any) {
       }
 
       if ([EventType.ACCEPTED_FRIEND_REQUEST as string].includes(type)) {
+        console.log("ACCEPTED_FRIEND_REQUEST", 666666666666);
         const translations = userFollowYou(
           type,
           userSetup?.meta?.firstName,
