@@ -29,6 +29,22 @@ type BatchNotificationType = {
   title: string;
 };
 
+const userFollowYou = (type: string, user: any, imageUrl: string) => {
+  return {
+    title: "Follow",
+    text: `${user} start following you`,
+    userImageUrl: imageUrl,
+  };
+};
+
+const userSendRequestToYou = (type: string, user: any, imageUrl: string) => {
+  return {
+    title: "Follow request",
+    text: `${user} send you request`,
+    userImageUrl: imageUrl,
+  };
+};
+
 const sendMessageNotificationMapper = (
   type: string,
   user: any,
@@ -156,7 +172,33 @@ export async function handler(event: any) {
         notificationText = translations.text;
       }
 
-      if (![EventType.SEND_MESSAGE as string].includes(type)) {
+      if ([EventType.ACCEPTED_FRIEND_REQUEST as string].includes(type)) {
+        const translations = userFollowYou(
+          type,
+          userSetup?.meta?.firstName,
+          userSetup?.meta?.userImageUrl || ""
+        );
+        notificationTitle = translations.title;
+        notificationText = translations.text;
+      }
+
+      if ([EventType.PENDING_FRIEND_REQUEST as string].includes(type)) {
+        const translations = userSendRequestToYou(
+          type,
+          userSetup?.meta?.firstName,
+          userSetup?.meta?.userImageUrl || ""
+        );
+        notificationTitle = translations.title;
+        notificationText = translations.text;
+      }
+
+      if (
+        ![
+          EventType.SEND_MESSAGE as string,
+          EventType.ACCEPTED_FRIEND_REQUEST as string,
+          EventType.PENDING_FRIEND_REQUEST as string,
+        ].includes(type)
+      ) {
         await docClient.send(
           new PutCommand({
             TableName: `${process.env.DEPLOYMENT_ENV}-younger-serverless-NotificationsTable`,
